@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>名古屋ホテル Deal Tracker</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <h1>名古屋ホテル Deal Tracker</h1>
+    <p id="updated-at">最終更新: 読み込み中...</p>
+  </header>
+  <main>
+    <section id="date-search-section">
+      <h2>デート日おすすめ検索</h2>
+      <div class="date-picker-row">
+        <label for="stay-date">宿泊日:</label>
+        <input type="date" id="stay-date">
+        <button id="search-btn">検索</button>
+      </div>
+      <div id="recommend-results"></div>
+    </section>
+    <section id="deals-section">
+      <h2>お得アラート</h2>
+      <div id="deal-cards" class="card-grid"></div>
+      <p id="no-deals" hidden>直近のお得プランはありません。</p>
+    </section>
+    <section id="heatmap-section">
+      <h2>日付 × ホテル 価格ヒートマップ</h2>
+      <div id="heatmap-container"></div>
+    </section>
+    <section id="chart-section">
+      <h2>価格推移（直近14日）</h2>
+      <canvas id="price-chart"></canvas>
+    </section>
+    <section id="hotels-section">
+      <h2>ホテル一覧</h2>
+      <div id="hotel-cards" class="card-grid"></div>
+    </section>
+  </main>
+  <footer>
+    <p>※ 楽天トラベル掲載価格（税込・1室2名利用時）</p>
+  </footer>
+  <script src="app.js"></script>
+</body>
+</html>
