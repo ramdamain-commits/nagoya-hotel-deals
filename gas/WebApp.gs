@@ -47,7 +47,7 @@ function getHotelsAsJson(sheet) {
       hotelName: row[COL_H.HOTEL_NAME - 1],
       targetPrice: row[COL_H.TARGET_PRICE - 1] || null,
       recentAvgPrice: row[COL_H.RECENT_AVG_PRICE - 1] || null,
-      enabled: row[COL_H.ENABLED - 1] !== false && row[COL_H.ENABLED - 1] !== 'FALSE',
+      enabled: !!row[COL_H.ENABLED - 1],
     });
   }
 

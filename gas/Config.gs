@@ -1,21 +1,21 @@
 // ===== シート名 =====
-var SHEET_HOTELS = 'Hotels';
-var SHEET_PRICE_LOG = 'PriceLog';
-var SHEET_NOTIFY_LOG = 'NotifyLog';
-var SHEET_CONFIG = 'Config';
+const SHEET_HOTELS = 'Hotels';
+const SHEET_PRICE_LOG = 'PriceLog';
+const SHEET_NOTIFY_LOG = 'NotifyLog';
+const SHEET_CONFIG = 'Config';
 
 // ===== Hotels シートのカラム順序（1始まり） =====
-var COL_H = {
+const COL_H = Object.freeze({
   HOTEL_NO: 1,
   HOTEL_NAME: 2,
   TARGET_PRICE: 3,
   RECENT_AVG_PRICE: 4,
   ENABLED: 5,
   MEMO: 6,
-};
+});
 
 // ===== PriceLog シートのカラム順序（1始まり） =====
-var COL_P = {
+const COL_P = Object.freeze({
   FETCH_DATE: 1,
   STAY_DATE: 2,
   HOTEL_NO: 3,
@@ -25,18 +25,18 @@ var COL_P = {
   REVIEW_AVERAGE: 7,
   DISCOUNT_RATE: 8,
   RESERVE_URL: 9,
-};
+});
 
 // ===== NotifyLog シートのカラム順序（1始まり） =====
-var COL_N = {
+const COL_N = Object.freeze({
   HOTEL_NO: 1,
   STAY_DATE: 2,
   NOTIFIED_AT: 3,
-};
+});
 
 // ===== 定数 =====
-var HEADER_ROW = 1;
-var DATA_START_ROW = 2;
+const HEADER_ROW = 1;
+const DATA_START_ROW = 2;
 
 // ===== ヘルパー =====
 function getSpreadsheet() {
@@ -54,4 +54,18 @@ function getConfigValue(key) {
     if (data[i][0] === key) return data[i][1];
   }
   return null;
+}
+
+/**
+ * Config シートの全設定を一括取得する
+ * @returns {Object} キー→値のマップ
+ */
+function getAllConfigValues() {
+  var sheet = getSheet(SHEET_CONFIG);
+  var data = sheet.getDataRange().getValues();
+  var config = {};
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0]) config[data[i][0]] = data[i][1];
+  }
+  return config;
 }
