@@ -10,8 +10,9 @@
 
 - 新ドメイン: `openapi.rakuten.co.jp/engine/api/Travel/VacantHotelSearch/20170426`
 - 認証: `applicationId`（クエリパラメータ）+ `accessKey`（クエリパラメータ）+ `Referer`/`Origin` ヘッダー（Config の `APP_URL`）
-- APP_URL は楽天デベロッパーコンソールの「許可されたWebサイト」と一致させる（現在: `script.google.com`）
-- GAS の UrlFetchApp は `Referer` ヘッダーを送れない可能性がある。403 が解消しない場合は旧API（`app.rakuten.co.jp`）へのフォールバックを検討
+- GAS の UrlFetchApp は Referer/Origin ヘッダーを送信可能（2026-04-12 確認済み）
+- Referer/Origin には楽天コンソール登録サイト（`script.google.com`）を設定する。`rakuten.co.jp` は単発では通るが連続リクエストで `HTTP_REFERRER_NOT_ALLOWED` になる
+- `clasp push` 後に GAS エディタの表示が更新されないことがある。`--force` フラグで強制 push、エディタはリロードで反映
 - リクエスト間に1秒のディレイを入れる
 - 429 レスポンス時はログに記録してスキップする
 - GAS 6分制限: 28日×1秒=最低28秒。ホテル数増加時はチェックポイント方式を検討
