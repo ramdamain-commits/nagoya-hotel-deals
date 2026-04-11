@@ -1,0 +1,53 @@
+{
+  "updated_at": "2026-04-11T09:00:00+09:00",
+  "hotels": [
+    {
+      "hotelNo": "100001",
+      "hotelName": "ホテルA 名古屋栄",
+      "targetPrice": 12000,
+      "recentAvgPrice": 14500,
+      "enabled": true
+    },
+    {
+      "hotelNo": "100002",
+      "hotelName": "ホテルB 名古屋駅前",
+      "targetPrice": 15000,
+      "recentAvgPrice": 18000,
+      "enabled": true
+    },
+    {
+      "hotelNo": "100003",
+      "hotelName": "ホテルC 金山",
+      "targetPrice": 10000,
+      "recentAvgPrice": 11000,
+      "enabled": true
+    }
+  ],
+  "price_history": {
+    "100001": [
+      {"fetchDate": "2026-04-10", "stayDate": "2026-04-18", "charge": 11000, "planName": "スタンダードダブル 素泊まり", "discountRate": 24.1, "reviewAverage": 4.2, "reserveUrl": "https://travel.rakuten.co.jp/"},
+      {"fetchDate": "2026-04-10", "stayDate": "2026-04-19", "charge": 15000, "planName": "スタンダードダブル 素泊まり", "discountRate": -3.4, "reviewAverage": 4.2, "reserveUrl": "https://travel.rakuten.co.jp/"},
+      {"fetchDate": "2026-04-10", "stayDate": "2026-04-20", "charge": 9800, "planName": "日曜限定プラン", "discountRate": 32.4, "reviewAverage": 4.2, "reserveUrl": "https://travel.rakuten.co.jp/"},
+      {"fetchDate": "2026-04-10", "stayDate": "2026-04-21", "charge": 13000, "planName": "スタンダードダブル 朝食付", "discountRate": 10.3, "reviewAverage": 4.2, "reserveUrl": "https://travel.rakuten.co.jp/"},
+      {"fetchDate": "2026-04-10", "stayDate": "2026-04-22", "charge": 12500, "planName": "スタンダードダブル 素泊まり", "discountRate": 13.8, "reviewAverage": 4.2, "reserveUrl": "https://travel.rakuten.co.jp/"},
+      {"fetchDate": "2026-04-10", "stayDate": "2026-04-23", "charge": 14000, "planName": "スタンダードダブル 素泊まり", "discountRate": 3.4, "reviewAverage": 4.2, "reserveUrl": "https://travel.rakuten.co.jp/"},
+      {"fetchDate": "2026-04-10", "stayDate": "2026-04-24", "charge": 16000, "planName": "スタンダードダブル 朝食付", "discountRate": -10.3, "reviewAverage": 4.2, "reserveUrl": "https://travel.rakuten.co.jp/"},
+      {"fetchDate": "2026-04-11", "stayDate": "2026-04-18", "charge": 10500, "planName": "タイムセール", "discountRate": 27.6, "reviewAverage": 4.2, "reserveUrl": "https://travel.rakuten.co.jp/"},
+      {"fetchDate": "2026-04-11", "stayDate": "2026-04-19", "charge": 14800, "planName": "スタンダードダブル 素泊まり", "discountRate": -2.1, "reviewAverage": 4.2, "reserveUrl": "https://travel.rakuten.co.jp/"},
+      {"fetchDate": "2026-04-11", "stayDate": "2026-04-20", "charge": 9500, "planName": "日曜限定プラン", "discountRate": 34.5, "reviewAverage": 4.2, "reserveUrl": "https://travel.rakuten.co.jp/"}
+    ],
+    "100002": [
+      {"fetchDate": "2026-04-10", "stayDate": "2026-04-18", "charge": 14000, "planName": "デラックスツイン", "discountRate": 22.2, "reviewAverage": 4.5, "reserveUrl": "https://travel.rakuten.co.jp/"},
+      {"fetchDate": "2026-04-10", "stayDate": "2026-04-19", "charge": 20000, "planName": "デラックスツイン", "discountRate": -11.1, "reviewAverage": 4.5, "reserveUrl": "https://travel.rakuten.co.jp/"},
+      {"fetchDate": "2026-04-10", "stayDate": "2026-04-20", "charge": 13000, "planName": "週末限定", "discountRate": 27.8, "reviewAverage": 4.5, "reserveUrl": "https://travel.rakuten.co.jp/"},
+      {"fetchDate": "2026-04-11", "stayDate": "2026-04-18", "charge": 13500, "planName": "デラックスツイン", "discountRate": 25.0, "reviewAverage": 4.5, "reserveUrl": "https://travel.rakuten.co.jp/"},
+      {"fetchDate": "2026-04-11", "stayDate": "2026-04-19", "charge": 19500, "planName": "デラックスツイン", "discountRate": -8.3, "reviewAverage": 4.5, "reserveUrl": "https://travel.rakuten.co.jp/"}
+    ],
+    "100003": [
+      {"fetchDate": "2026-04-10", "stayDate": "2026-04-18", "charge": 8500, "planName": "エコノミーダブル", "discountRate": 22.7, "reviewAverage": 3.8, "reserveUrl": "https://travel.rakuten.co.jp/"},
+      {"fetchDate": "2026-04-10", "stayDate": "2026-04-19", "charge": 12000, "planName": "エコノミーダブル", "discountRate": -9.1, "reviewAverage": 3.8, "reserveUrl": "https://travel.rakuten.co.jp/"},
+      {"fetchDate": "2026-04-10", "stayDate": "2026-04-20", "charge": 7800, "planName": "日曜プラン", "discountRate": 29.1, "reviewAverage": 3.8, "reserveUrl": "https://travel.rakuten.co.jp/"},
+      {"fetchDate": "2026-04-11", "stayDate": "2026-04-18", "charge": 8200, "planName": "エコノミーダブル", "discountRate": 25.5, "reviewAverage": 3.8, "reserveUrl": "https://travel.rakuten.co.jp/"}
+    ]
+  }
+}
