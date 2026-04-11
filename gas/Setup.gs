@@ -86,6 +86,34 @@ function setupDailyTrigger() {
 }
 
 /**
+ * Hotels シートに10ホテルを追加する（既存データは残す）
+ * GAS エディタから1回だけ実行する。実行後は削除してよい。
+ */
+function addNewHotels() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Hotels');
+  var lastRow = sheet.getLastRow();
+
+  // 行6のゲートタワーが手入力済みなら上書き含めて行6から
+  var startRow = 6;
+
+  var newHotels = [
+    [158556, '名古屋JRゲートタワーホテル', 18300, '', true, '名駅直結・バストイレ別あり'],
+    [163007, '名古屋プリンスホテル スカイタワー', 22500, '', true, 'ささしまライブ・全室洗い場付'],
+    [187586, 'ザ ロイヤルパークホテル アイコニック 名古屋', 23400, '', true, '栄・2024年開業・全室25F以上'],
+    [189164, 'ベストウェスタンプラス名古屋栄', 8500, '', true, '栄・2024年開業・コスパ◎'],
+    [181187, 'イビススタイルズ名古屋', 10200, '', true, '名駅・セール変動大'],
+    [171982, 'フォーポイント フレックス by シェラトン 名古屋駅前', 11900, '', true, '名駅・2024年開業・マリオット系'],
+    [147710, 'ドーミーインPREMIUM名古屋栄', 13600, '', true, '栄・天然温泉大浴場'],
+    [12543, '名古屋マリオットアソシアホテル', 29800, '', true, '名駅直結・52F夜景'],
+    [2046, '名古屋観光ホテル', 14500, '', true, '伏見・1936年創業老舗'],
+    [166257, 'DEL style 名古屋納屋橋', 10200, '', true, '伏見・全室バストイレ別・レインシャワー'],
+  ];
+
+  sheet.getRange(startRow, 1, newHotels.length, 6).setValues(newHotels);
+  Logger.log('Added ' + newHotels.length + ' new hotels starting at row ' + startRow);
+}
+
+/**
  * Config シートに ACCESS_KEY を追加する
  */
 function addAccessKey() {
