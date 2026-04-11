@@ -1,5 +1,5 @@
 // GAS Web App の URL（デプロイ後にここを更新する）
-var API_URL = '';
+var API_URL = 'https://script.google.com/macros/s/AKfycbyg9ijFw9TFjW1P3USrpKMutdw8LAP4aUgg92x7XiTa7vcGpbUqWXPTQmJrfsKawZAc0A/exec';
 
 // ---- グローバルデータ ----
 var appData = null;

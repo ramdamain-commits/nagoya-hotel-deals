@@ -10,7 +10,8 @@ function searchVacantHotels(hotelNos, checkinDate, checkoutDate, config) {
   var apiKey = config['API_KEY'];
   var accessKey = config['ACCESS_KEY'];
   var adultNum = Number(config['ADULT_NUM']) || 2;
-  var appUrl = config['APP_URL'] || 'https://webservice.rakuten.co.jp';
+  // 楽天 API は Referer/Origin に楽天コンソール登録サイトを要求する
+  var refererUrl = config['APP_URL'] || 'https://script.google.com';
 
   var url = 'https://openapi.rakuten.co.jp/engine/api/Travel/VacantHotelSearch/20170426'
     + '?applicationId=' + apiKey
@@ -24,8 +25,8 @@ function searchVacantHotels(hotelNos, checkinDate, checkoutDate, config) {
   var options = {
     muteHttpExceptions: true,
     headers: {
-      'Referer': appUrl,
-      'Origin': appUrl,
+      'Referer': refererUrl,
+      'Origin': refererUrl,
     },
   };
   var response = UrlFetchApp.fetch(url, options);
@@ -108,4 +109,56 @@ function parseVacantResponse(json, adultNum) {
   }
 
   return results;
+}
+
+/**
+ * API 接続テスト: ホテル1件・1日分だけ取得して結果を表示する
+ * GAS エディタまたはメニューから実行する
+ */
+function testApiConnection() {
+  var config = getAllConfigValues();
+  var hotelsSheet = getSheet(SHEET_HOTELS);
+  var lastRow = hotelsSheet.getLastRow();
+  if (lastRow < DATA_START_ROW) {
+    Logger.log('テスト失敗: Hotels シートにデータがありません');
+    return;
+  }
+
+  // 最初の enabled ホテルを取得
+  var data = hotelsSheet.getRange(DATA_START_ROW, 1, lastRow - HEADER_ROW, COL_H.ENABLED).getValues();
+  var testHotelNo = null;
+  for (var i = 0; i < data.length; i++) {
+    if (data[i][COL_H.HOTEL_NO - 1] && data[i][COL_H.ENABLED - 1]) {
+      testHotelNo = String(data[i][COL_H.HOTEL_NO - 1]);
+      break;
+    }
+  }
+  if (!testHotelNo) {
+    Logger.log('テスト失敗: 有効なホテルがありません');
+    return;
+  }
+
+  var tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 7);
+  var dayAfter = new Date(tomorrow);
+  dayAfter.setDate(dayAfter.getDate() + 1);
+
+  Logger.log('=== API 接続テスト ===');
+  Logger.log('ホテル番号: ' + testHotelNo);
+  Logger.log('チェックイン: ' + formatDate(tomorrow));
+  Logger.log('Referer: ' + (config['APP_URL'] || 'https://script.google.com'));
+
+  var result = searchVacantHotels([testHotelNo], formatDate(tomorrow), formatDate(dayAfter), config);
+
+  if (result.errorCount > 0) {
+    Logger.log('★ API エラー — ログの HTTP ステータスを確認してください');
+  } else if (result.results.length === 0) {
+    Logger.log('★ API 成功だが空室なし（正常動作）');
+  } else {
+    var p = result.results[0];
+    Logger.log('★ API 成功!');
+    Logger.log('  ホテル: ' + p.hotelName);
+    Logger.log('  プラン: ' + p.planName);
+    Logger.log('  料金: ' + p.charge + '円');
+  }
 }

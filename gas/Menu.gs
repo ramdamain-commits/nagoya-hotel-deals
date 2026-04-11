@@ -4,6 +4,7 @@
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('ホテル管理')
     .addItem('今すぐ価格取得', 'checkAllPrices')
+    .addItem('API 接続テスト', 'testApiConnection')
     .addSeparator()
     .addItem('通知ログをクリア', 'clearNotifyLog')
     .addToUi();

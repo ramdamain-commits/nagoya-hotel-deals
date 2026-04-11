@@ -63,6 +63,29 @@ function seedHotels() {
 }
 
 /**
+ * 日次トリガーを設定する（毎朝9時台に checkAllPrices を実行）
+ * GAS エディタから1回だけ実行する
+ */
+function setupDailyTrigger() {
+  // 既存トリガーを削除
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === 'checkAllPrices') {
+      ScriptApp.deleteTrigger(triggers[i]);
+    }
+  }
+
+  // 新規トリガー作成: 毎日 午前9時〜10時
+  ScriptApp.newTrigger('checkAllPrices')
+    .timeBased()
+    .everyDays(1)
+    .atHour(9)
+    .create();
+
+  Logger.log('日次トリガー設定完了: checkAllPrices を毎日午前9時台に実行');
+}
+
+/**
  * Config シートに ACCESS_KEY を追加する
  */
 function addAccessKey() {
