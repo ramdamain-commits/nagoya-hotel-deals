@@ -8,10 +8,13 @@
 
 ## 楽天トラベル API
 
-- エンドポイント: VacantHotelSearch/20170426
-- applicationId はスプレッドシートの Config シートに保存。コードにハードコードしない
+- 新ドメイン: `openapi.rakuten.co.jp/engine/api/Travel/VacantHotelSearch/20170426`
+- 認証: `applicationId`（クエリパラメータ）+ `accessKey`（クエリパラメータ）+ `Referer`/`Origin` ヘッダー（Config の `APP_URL`）
+- APP_URL は楽天デベロッパーコンソールの「許可されたWebサイト」と一致させる（現在: `script.google.com`）
+- GAS の UrlFetchApp は `Referer` ヘッダーを送れない可能性がある。403 が解消しない場合は旧API（`app.rakuten.co.jp`）へのフォールバックを検討
 - リクエスト間に1秒のディレイを入れる
 - 429 レスポンス時はログに記録してスキップする
+- GAS 6分制限: 28日×1秒=最低28秒。ホテル数増加時はチェックポイント方式を検討
 
 ## スプレッドシート構成
 
