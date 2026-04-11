@@ -7,10 +7,12 @@
  */
 function searchVacantHotels(hotelNos, checkinDate, checkoutDate) {
   var apiKey = getConfigValue('API_KEY');
+  var accessKey = getConfigValue('ACCESS_KEY');
   var adultNum = getConfigValue('ADULT_NUM') || 2;
 
-  var url = 'https://app.rakuten.co.jp/services/api/Travel/VacantHotelSearch/20170426'
+  var url = 'https://openapi.rakuten.co.jp/engine/api/Travel/VacantHotelSearch/20170426'
     + '?applicationId=' + apiKey
+    + '&accessKey=' + accessKey
     + '&format=json'
     + '&hotelNo=' + hotelNos.join(',')
     + '&checkinDate=' + checkinDate
