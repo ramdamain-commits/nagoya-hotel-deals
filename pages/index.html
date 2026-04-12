@@ -12,7 +12,48 @@
     <h1>名古屋ホテル Deal Tracker</h1>
     <p id="updated-at">最終更新: 読み込み中...</p>
   </header>
+
+  <!-- ダッシュボード要約バナー -->
+  <div id="summary-banner" class="summary-banner">
+    <div class="summary-card">
+      <div class="summary-label">追跡中</div>
+      <div class="summary-value" id="summary-hotel-count">--</div>
+      <div class="summary-unit">ホテル</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">最安</div>
+      <div class="summary-value" id="summary-cheapest-price">--</div>
+      <div class="summary-unit" id="summary-cheapest-name">取得中...</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">お得アラート</div>
+      <div class="summary-value" id="summary-deal-count">--</div>
+      <div class="summary-unit">件</div>
+    </div>
+  </div>
+
+  <!-- スティッキーナビゲーション -->
+  <nav class="sticky-nav" aria-label="セクションナビゲーション">
+    <ul class="sticky-nav-list">
+      <li><a href="#deals-section">お得アラート</a></li>
+      <li><a href="#date-search-section">おすすめ検索</a></li>
+      <li><a href="#chart-section">価格推移チャート</a></li>
+      <li><a href="#weekday-heatmap-section">曜日別価格</a></li>
+      <li><a href="#heatmap-section">ヒートマップ</a></li>
+      <li><a href="#notify-section">通知履歴</a></li>
+      <li><a href="#hotels-section">ホテル一覧</a></li>
+    </ul>
+  </nav>
+
   <main>
+    <!-- 1. お得アラート -->
+    <section id="deals-section">
+      <h2>お得アラート</h2>
+      <div id="deal-cards" class="card-grid"></div>
+      <p id="no-deals" hidden>直近のお得プランはありません。</p>
+    </section>
+
+    <!-- 2. デート日おすすめ検索 -->
     <section id="date-search-section">
       <h2>デート日おすすめ検索</h2>
       <div class="date-picker-row">
@@ -22,15 +63,8 @@
       </div>
       <div id="recommend-results"></div>
     </section>
-    <section id="deals-section">
-      <h2>お得アラート</h2>
-      <div id="deal-cards" class="card-grid"></div>
-      <p id="no-deals" hidden>直近のお得プランはありません。</p>
-    </section>
-    <section id="heatmap-section">
-      <h2>日付 × ホテル 価格ヒートマップ</h2>
-      <div id="heatmap-container"></div>
-    </section>
+
+    <!-- 3. 価格推移チャート -->
     <section id="chart-section">
       <h2>価格推移（直近取得分）</h2>
       <div class="chart-controls">
@@ -41,19 +75,37 @@
       </div>
       <canvas id="price-chart"></canvas>
     </section>
-    <section id="notify-section">
-      <h2>通知履歴（直近30日）</h2>
-      <div id="notify-history-container"></div>
-    </section>
+
+    <!-- 4. 曜日別平均価格 -->
     <section id="weekday-heatmap-section">
       <h2>曜日別 平均価格</h2>
       <div id="weekday-heatmap-container"></div>
     </section>
+
+    <!-- 5. 日付×ホテル価格ヒートマップ（折りたたみ） -->
+    <section id="heatmap-section">
+      <details id="heatmap-details">
+        <summary>日付 × ホテル 価格ヒートマップを表示（29ホテル × 28日）</summary>
+        <div id="heatmap-container"></div>
+      </details>
+    </section>
+
+    <!-- 6. 通知履歴（折りたたみ） -->
+    <section id="notify-section">
+      <details id="notify-details">
+        <summary>通知履歴（直近30日）</summary>
+        <div id="notify-history-container"></div>
+        <div id="notify-more-container"></div>
+      </details>
+    </section>
+
+    <!-- 7. ホテル一覧 -->
     <section id="hotels-section">
       <h2>ホテル一覧</h2>
       <div id="hotel-cards" class="card-grid"></div>
     </section>
   </main>
+
   <footer>
     <p>※ 楽天トラベル掲載価格（税込・1室2名利用時）</p>
   </footer>
