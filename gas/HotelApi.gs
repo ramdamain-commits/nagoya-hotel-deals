@@ -29,7 +29,13 @@ function searchVacantHotels(hotelNos, checkinDate, checkoutDate, config) {
       'Origin': refererUrl,
     },
   };
-  var response = UrlFetchApp.fetch(url, options);
+  var response;
+  try {
+    response = UrlFetchApp.fetch(url, options);
+  } catch (e) {
+    Logger.log('API ネットワークエラー: ' + e.message.substring(0, 200));
+    return { results: [], errorCount: 1 };
+  }
   var statusCode = response.getResponseCode();
 
   if (statusCode === 429) {
