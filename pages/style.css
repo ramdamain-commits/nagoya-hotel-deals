@@ -1,5 +1,11 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* キーボードフォーカス時のアウトライン（グローバル） */
+:focus-visible {
+  outline: 3px solid #1a237e;
+  outline-offset: 2px;
+}
+
 html { scroll-behavior: smooth; }
 
 body {
@@ -103,9 +109,10 @@ header p { font-size: 0.85rem; opacity: 0.8; margin-top: 0.3rem; }
 
 /* ナビアクティブリンク（IntersectionObserverで付与） */
 .sticky-nav-list li a.active {
-  border-bottom-color: #1a237e;
   color: #1a237e;
+  border-bottom: 3px solid #1a237e;
   font-weight: 700;
+  background: #e8eaf6;
 }
 
 /* ---- メインコンテンツ ---- */
@@ -213,9 +220,11 @@ details[open] summary {
 .card .plan-name { font-size: 0.8rem; color: #888; margin-top: 0.2rem; }
 .card .meta { font-size: 0.8rem; color: #666; margin-top: 0.3rem; }
 .card .btn-reserve {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   margin-top: 0.5rem;
-  padding: 0.3rem 0.8rem;
+  padding: 0.5rem 1rem;
+  min-height: 40px;
   background: #c62828;
   color: #fff;
   text-decoration: none;
@@ -348,6 +357,9 @@ details[open] summary {
   font-weight: 600;
 }
 .btn-more:hover { background: #e8eaf6; }
+
+/* ---- エラーメッセージ ---- */
+.error-message { color: #c62828; text-align: center; padding: 2rem; }
 
 /* ---- ローディング ---- */
 .loading { text-align: center; padding: 2rem; color: #666; }

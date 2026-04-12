@@ -27,6 +27,7 @@ async function init() {
   try {
     var url = API_URL || 'mock-data.json';
     var res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     var data = await res.json();
     appData = data;
 
@@ -40,8 +41,9 @@ async function init() {
     renderWeekdayHeatmap(data.hotels, data.price_history);
     setupNavHighlight();
   } catch (err) {
-    document.getElementById('hotel-cards').innerHTML =
-      '<p style="color:red;">データの取得に失敗しました: ' + err.message + '</p>';
+    var errMsg = '<p class="error-message">データの取得に失敗しました: ' + escapeHtml(err.message) + '</p>';
+    document.getElementById('deal-cards').innerHTML = errMsg;
+    document.getElementById('hotel-cards').innerHTML = errMsg;
   }
 }
 
@@ -389,6 +391,12 @@ function renderHeatmap(hotels, priceHistory) {
   }
   html += '</tbody></table>';
   container.innerHTML = html;
+
+  // summaryのホテル数×日数を動的更新
+  var summaryEl = document.querySelector('#heatmap-details summary');
+  if (summaryEl) {
+    summaryEl.textContent = '日付 × ホテル 価格ヒートマップを表示（' + hotels.length + 'ホテル × ' + dates.length + '日）';
+  }
 }
 
 // ---- 価格推移チャート ----
@@ -546,9 +554,9 @@ function renderChart(hotels, priceHistory) {
   drawChart('all');
 
   // ドロップダウン変更時に再描画
-  select.onchange = function() {
+  select.addEventListener('change', function() {
     drawChart(select.value);
-  };
+  });
 }
 
 // ---- 通知履歴（直近20件 + もっと見るボタン）----
