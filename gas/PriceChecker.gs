@@ -138,11 +138,13 @@ function _checkAllPricesImpl() {
   // recentAvgPrice を更新
   updateRecentAvgPrices(hotelsSheet, priceLogSheet, hotelMap);
 
-  // 通知送信
-  if (deals.length > 0) {
+  // 通知送信（21時台のみ。9時台は集計のみ）
+  var currentHour = now.getHours();
+  if (deals.length > 0 && currentHour >= 20) {
     sendDealNotifications(deals);
+  } else if (deals.length > 0) {
+    Logger.log(deals.length + '件のお得プランあり（9時台のため通知スキップ）');
   }
-
   Logger.log('=== 完了: ' + priceLogRows.length + '件記録, ' + deals.length + '件通知, 成功' + successCount + '日/失敗' + errorCount + '日 ===');
 }
 

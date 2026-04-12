@@ -42,6 +42,7 @@ function sendDealNotifications(deals) {
     bodyParts.push(lines.join('\n'));
   }
 
-  GmailApp.sendEmail(notifyEmail, subject, bodyParts.join('\n\n'));
+  var footer = '\n\n---\nダッシュボード: https://ramdamain-commits.github.io/nagoya-hotel-deals/';
+  GmailApp.sendEmail(notifyEmail, subject, bodyParts.join('\n\n') + footer);
   Logger.log(deals.length + '件の通知メールを送信しました');
 }
