@@ -121,6 +121,29 @@ function addNewHotels() {
 }
 
 /**
+ * Hotels シートに7ホテルを追加する（2026-04-12 debateレビュー通過分）
+ * GAS エディタから1回だけ実行する。実行後は削除してよい。
+ */
+function addHotelsWave2() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Hotels');
+  var lastRow = sheet.getLastRow();
+  var startRow = lastRow + 1;
+
+  var newHotels = [
+    [164918, 'ランプライトブックスホテル名古屋', 12000, '', true, '伏見・Books&Cafeコンセプト'],
+    [167718, '西鉄ホテル クルーム名古屋', 17000, '', true, '栄・最上階露天風呂付き大浴場'],
+    [177045, 'ホテル京阪 名古屋', 14000, '', true, '栄・2020年開業・ReFaシャワーヘッド'],
+    [179107, '三交インGrande名古屋', 17000, '', true, '名駅・SPA付き大浴場'],
+    [1659, 'ANAクラウンプラザホテルグランコート名古屋', 22000, '', true, '金山駅直結・高層夜景'],
+    [144939, '三交イン名古屋錦〜四季乃湯〜', 10000, '', true, '栄・天然温泉大浴場・コメダ朝食'],
+    [168599, 'ダイワロイネットホテル名古屋伏見', 12000, '', true, '伏見・大浴場・和竹コンセプト'],
+  ];
+
+  sheet.getRange(startRow, 1, newHotels.length, 6).setValues(newHotels);
+  Logger.log('Wave2: Added ' + newHotels.length + ' hotels starting at row ' + startRow);
+}
+
+/**
  * Config シートに ACCESS_KEY を追加する
  */
 function addAccessKey() {

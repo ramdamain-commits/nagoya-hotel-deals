@@ -32,8 +32,22 @@
       <div id="heatmap-container"></div>
     </section>
     <section id="chart-section">
-      <h2>価格推移（直近14日）</h2>
+      <h2>価格推移（直近取得分）</h2>
+      <div class="chart-controls">
+        <label for="chart-hotel-select">ホテル選択:</label>
+        <select id="chart-hotel-select">
+          <option value="all">全ホテル（中央値）</option>
+        </select>
+      </div>
       <canvas id="price-chart"></canvas>
+    </section>
+    <section id="notify-section">
+      <h2>通知履歴（直近30日）</h2>
+      <div id="notify-history-container"></div>
+    </section>
+    <section id="weekday-heatmap-section">
+      <h2>曜日別 平均価格</h2>
+      <div id="weekday-heatmap-container"></div>
     </section>
     <section id="hotels-section">
       <h2>ホテル一覧</h2>

@@ -82,12 +82,25 @@ function _checkAllPricesImpl() {
 
     Logger.log('取得中: ' + checkinStr + ' (' + (d + 1) + '/' + totalDays + ')');
 
-    var apiResult = searchVacantHotels(hotelNos, checkinStr, checkoutStr, config);
-    errorCount += apiResult.errorCount;
-    if (apiResult.errorCount > 0) continue;
+    // API は最大15件同時指定。超える場合はバッチ分割
+    var batchSize = 15;
+    var dayResults = [];
+    var dayError = false;
+    for (var b = 0; b < hotelNos.length; b += batchSize) {
+      var batch = hotelNos.slice(b, b + batchSize);
+      var apiResult = searchVacantHotels(batch, checkinStr, checkoutStr, config);
+      if (apiResult.errorCount > 0) {
+        errorCount += apiResult.errorCount;
+        dayError = true;
+        break;
+      }
+      dayResults = dayResults.concat(apiResult.results);
+      // バッチ間ディレイ
+      if (b + batchSize < hotelNos.length) Utilities.sleep(delayMs);
+    }
+    if (dayError) continue;
     successCount++;
-
-    var results = apiResult.results;
+    var results = dayResults;
     for (var r = 0; r < results.length; r++) {
       var plan = results[r];
       var hotel = hotelMap[plan.hotelNo];
