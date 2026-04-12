@@ -101,6 +101,13 @@ header p { font-size: 0.85rem; opacity: 0.8; margin-top: 0.3rem; }
   border-bottom-color: #1a237e;
 }
 
+/* ナビアクティブリンク（IntersectionObserverで付与） */
+.sticky-nav-list li a.active {
+  border-bottom-color: #1a237e;
+  color: #1a237e;
+  font-weight: 700;
+}
+
 /* ---- メインコンテンツ ---- */
 main { max-width: 960px; margin: 0 auto; padding: 1rem; }
 
@@ -200,7 +207,8 @@ details[open] summary {
 }
 .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
 
-.card h3 { font-size: 1rem; margin-bottom: 0.5rem; }
+/* バッジとの重なり防止: 右側にバッジ分のスペースを確保 */
+.card h3 { font-size: 1rem; margin-bottom: 0.5rem; padding-right: 3rem; }
 .card .price { font-size: 1.5rem; font-weight: bold; color: #1a237e; }
 .card .plan-name { font-size: 0.8rem; color: #888; margin-top: 0.2rem; }
 .card .meta { font-size: 0.8rem; color: #666; margin-top: 0.3rem; }
@@ -250,6 +258,24 @@ details[open] summary {
 
 .discount-positive { color: #2e7d32; font-weight: bold; }
 .discount-negative { color: #c62828; }
+
+/* ---- 曜日バッジ（お得アラートカード内） ---- */
+.day-badge {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: #fff;
+  background: #1a237e;
+  margin-left: 0.3rem;
+  vertical-align: middle;
+}
+
+/* ---- ホテルカード: 目標以下なら緑ボーダー ---- */
+.card.card-on-target {
+  border-left: 4px solid #2e7d32;
+}
 
 /* ---- ヒートマップテーブル ---- */
 #heatmap-container { overflow-x: auto; }
