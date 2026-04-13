@@ -1,3 +1,29 @@
+// ---- テーマ切替 ----
+(function initTheme() {
+  var saved = localStorage.getItem('theme');
+  var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var theme = saved || (prefersDark ? 'dark' : 'light');
+  if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+    btn.textContent = theme === 'dark' ? '\u2600\uFE0F' : '\uD83C\uDF19';
+    btn.addEventListener('click', function() {
+      var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'light');
+        btn.textContent = '\uD83C\uDF19';
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+        btn.textContent = '\u2600\uFE0F';
+      }
+    });
+  });
+})();
+
 // GAS Web App の URL（デプロイ後にここを更新する）
 var API_URL = 'https://script.google.com/macros/s/AKfycbyg9ijFw9TFjW1P3USrpKMutdw8LAP4aUgg92x7XiTa7vcGpbUqWXPTQmJrfsKawZAc0A/exec';
 
