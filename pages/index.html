@@ -77,6 +77,14 @@
         <select id="chart-hotel-select">
           <option value="all">全ホテル（中央値）</option>
         </select>
+        <button id="compare-toggle" class="compare-btn" type="button">比較モード</button>
+      </div>
+      <div id="compare-panel" class="compare-panel" style="display:none;">
+        <div class="compare-panel-header">
+          <span>比較するホテルを選択（最大5件）:</span>
+          <button id="compare-clear" class="compare-clear-btn" type="button">クリア</button>
+        </div>
+        <div id="compare-checkboxes" class="compare-checkboxes"></div>
       </div>
       <canvas id="price-chart"></canvas>
     </section>

@@ -550,6 +550,132 @@ function renderChart(hotels, priceHistory) {
     });
   }
 
+  // ---- 比較モード ----
+  var compareToggle = document.getElementById('compare-toggle');
+  var comparePanel = document.getElementById('compare-panel');
+  var compareCheckboxes = document.getElementById('compare-checkboxes');
+  var compareClear = document.getElementById('compare-clear');
+  var isCompareMode = false;
+  var MAX_COMPARE = 5;
+
+  // チェックボックスを構築
+  for (var ci = 0; ci < hotels.length; ci++) {
+    var lbl = document.createElement('label');
+    var cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = hotels[ci].hotelNo;
+    cb.dataset.index = ci;
+    lbl.appendChild(cb);
+    lbl.appendChild(document.createTextNode(hotels[ci].hotelName));
+    compareCheckboxes.appendChild(lbl);
+  }
+
+  function getSelectedCompareHotels() {
+    var checked = compareCheckboxes.querySelectorAll('input:checked');
+    var nos = [];
+    for (var i = 0; i < checked.length; i++) nos.push(checked[i].value);
+    return nos;
+  }
+
+  function drawCompareChart(hotelNos) {
+    var allDates = {};
+    var targetH = hotels.filter(function(h) {
+      return hotelNos.indexOf(h.hotelNo) >= 0;
+    });
+
+    // 最新fetchDate を特定
+    var latestFetch = allFetchDates[0];
+
+    for (var ti = 0; ti < targetH.length; ti++) {
+      var hEntries = priceHistory[targetH[ti].hotelNo] || [];
+      for (var j = 0; j < hEntries.length; j++) {
+        if (hEntries[j].fetchDate === latestFetch) {
+          allDates[hEntries[j].stayDate] = true;
+        }
+      }
+    }
+    var labels = Object.keys(allDates).sort();
+    var datasets = [];
+
+    for (var hi = 0; hi < targetH.length; hi++) {
+      var h = targetH[hi];
+      var entries = priceHistory[h.hotelNo] || [];
+      var lineData = labels.map(function(sd) {
+        var best = null;
+        for (var k = 0; k < entries.length; k++) {
+          if (entries[k].stayDate === sd && entries[k].fetchDate === latestFetch) {
+            if (!best || entries[k].charge < best.charge) best = entries[k];
+          }
+        }
+        return best ? best.charge : null;
+      });
+      datasets.push({
+        label: h.hotelName,
+        data: lineData,
+        borderColor: colors[hi % colors.length],
+        fill: false,
+        tension: 0.3,
+        pointRadius: 3,
+      });
+    }
+
+    var ctx = document.getElementById('price-chart').getContext('2d');
+    var isMobile = window.innerWidth < 600;
+    if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: { labels: labels, datasets: datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: !isMobile,
+        aspectRatio: isMobile ? 1 : 2,
+        scales: {
+          x: { title: { display: !isMobile, text: '宿泊日' }, ticks: { maxRotation: 45, font: { size: isMobile ? 10 : 12 } } },
+          y: { title: { display: !isMobile, text: '料金（円）' }, ticks: { font: { size: isMobile ? 10 : 12 }, callback: function(v) { return '\u00a5' + v.toLocaleString(); } }, beginAtZero: false },
+        },
+        plugins: { legend: { position: 'bottom', labels: { font: { size: isMobile ? 10 : 12 }, boxWidth: isMobile ? 12 : 40 } } },
+      },
+    });
+  }
+
+  compareToggle.addEventListener('click', function() {
+    isCompareMode = !isCompareMode;
+    compareToggle.classList.toggle('active', isCompareMode);
+    comparePanel.style.display = isCompareMode ? '' : 'none';
+    select.style.display = isCompareMode ? 'none' : '';
+    if (!isCompareMode) {
+      drawChart(select.value);
+    } else {
+      var sel = getSelectedCompareHotels();
+      if (sel.length > 0) drawCompareChart(sel);
+    }
+  });
+
+  compareCheckboxes.addEventListener('change', function(e) {
+    var target = e.target;
+    if (target.tagName !== 'INPUT') return;
+    var lbl2 = target.parentElement;
+    lbl2.classList.toggle('checked', target.checked);
+
+    // 上限チェック
+    var sel = getSelectedCompareHotels();
+    if (sel.length > MAX_COMPARE && target.checked) {
+      target.checked = false;
+      lbl2.classList.remove('checked');
+      return;
+    }
+    if (sel.length > 0) drawCompareChart(sel);
+  });
+
+  compareClear.addEventListener('click', function() {
+    var cbs = compareCheckboxes.querySelectorAll('input');
+    for (var i = 0; i < cbs.length; i++) {
+      cbs[i].checked = false;
+      cbs[i].parentElement.classList.remove('checked');
+    }
+    drawChart('all');
+  });
+
   // 初回描画（全ホテル中央値）
   drawChart('all');
 
