@@ -62,15 +62,20 @@ function _checkAllPricesImpl() {
   var delayMs = Number(config['REQUEST_DELAY_MS']) || 1000;
   var discountThreshold = Number(config['DISCOUNT_THRESHOLD_PCT']) || 20;
   var cooldownHours = Number(config['COOLDOWN_HOURS']) || 24;
+  var hotelCooldownHours = Number(config['HOTEL_COOLDOWN_HOURS']) || 72;
+  var maxDealsPerHotel = Number(config['MAX_DEALS_PER_HOTEL']) || 3;
 
   var now = new Date();
   var deals = [];
   var priceLogRows = [];
   var errorCount = 0;
   var successCount = 0;
+  var hotelDealCount = {};  // 今回実行内のホテル別通知カウント
 
-  // NotifyLog を冒頭で一括読み込み
-  var notifyCache = loadNotifyCache(notifyLogSheet);
+  // NotifyLog を冒頭で一括読み込み（日付単位 + ホテル単位）
+  var notifyCaches = loadNotifyCache(notifyLogSheet);
+  var notifyCache = notifyCaches.byDate;
+  var hotelNotifyCache = notifyCaches.byHotel;
 
   // 向こう N 週間分を日付ごとに取得
   var totalDays = weeksAhead * 7;
@@ -121,7 +126,16 @@ function _checkAllPricesImpl() {
       ]);
 
       // 通知判定
-      var ctx = { notifyCache: notifyCache, now: now, discountThreshold: discountThreshold, cooldownHours: cooldownHours };
+      var ctx = {
+        notifyCache: notifyCache,
+        hotelNotifyCache: hotelNotifyCache,
+        now: now,
+        discountThreshold: discountThreshold,
+        cooldownHours: cooldownHours,
+        hotelCooldownHours: hotelCooldownHours,
+        maxDealsPerHotel: maxDealsPerHotel,
+        hotelDealCount: hotelDealCount,
+      };
       var dealInfo = checkDeal(plan, hotel, discountRate, checkin, ctx);
       if (dealInfo) deals.push(dealInfo);
     }
@@ -158,7 +172,12 @@ function _checkAllPricesImpl() {
   } else if (deals.length > 0) {
     Logger.log(deals.length + '件のお得プランあり（9時台のため通知スキップ）');
   }
-  Logger.log('=== 完了: ' + priceLogRows.length + '件記録, ' + deals.length + '件通知, 成功' + successCount + '日/失敗' + errorCount + '日 ===');
+  // 抑制統計をログ出力
+  var suppressedHotels = 0;
+  for (var hk in hotelDealCount) {
+    if (hotelDealCount[hk] >= maxDealsPerHotel) suppressedHotels++;
+  }
+  Logger.log('=== 完了: ' + priceLogRows.length + '件記録, ' + deals.length + '件通知, 成功' + successCount + '日/失敗' + errorCount + '日, ホテル上限到達' + suppressedHotels + '件 ===');
 }
 
 /**
@@ -176,24 +195,32 @@ function calcDiscountRate(charge, avgPrice, targetPrice) {
 
 /**
  * NotifyLog を一括読み込みしてキャッシュ用マップを返す
- * @returns {Object} キー: "hotelNo|stayDate" → notifiedAt (Date)
+ * @returns {Object} { byDate: {hotelNo|stayDate → Date}, byHotel: {hotelNo → Date} }
  */
 function loadNotifyCache(notifyLogSheet) {
-  var cache = {};
+  var byDate = {};
+  var byHotel = {};
   var lastRow = notifyLogSheet.getLastRow();
-  if (lastRow < DATA_START_ROW) return cache;
+  if (lastRow < DATA_START_ROW) return { byDate: byDate, byHotel: byHotel };
 
   var data = notifyLogSheet.getRange(DATA_START_ROW, 1, lastRow - HEADER_ROW, COL_N.NOTIFIED_AT).getValues();
   for (var i = 0; i < data.length; i++) {
     var hotelNo = String(data[i][COL_N.HOTEL_NO - 1]);
     var stayDate = formatDate(new Date(data[i][COL_N.STAY_DATE - 1]));
     var notifiedAt = new Date(data[i][COL_N.NOTIFIED_AT - 1]);
-    var key = hotelNo + '|' + stayDate;
-    if (!cache[key] || notifiedAt > cache[key]) {
-      cache[key] = notifiedAt;
+
+    // 日付単位キャッシュ（既存）
+    var dateKey = hotelNo + '|' + stayDate;
+    if (!byDate[dateKey] || notifiedAt > byDate[dateKey]) {
+      byDate[dateKey] = notifiedAt;
+    }
+
+    // ホテル単位キャッシュ（新規: 同一ホテルの最終通知日時）
+    if (!byHotel[hotelNo] || notifiedAt > byHotel[hotelNo]) {
+      byHotel[hotelNo] = notifiedAt;
     }
   }
-  return cache;
+  return { byDate: byDate, byHotel: byHotel };
 }
 
 /**
@@ -202,7 +229,7 @@ function loadNotifyCache(notifyLogSheet) {
  * @param {Object} hotel - hotelMap のエントリ
  * @param {number} discountRate - 割安率
  * @param {Date} stayDate - 宿泊日
- * @param {Object} ctx - { notifyCache, now, discountThreshold, cooldownHours }
+ * @param {Object} ctx - { notifyCache, hotelNotifyCache, now, discountThreshold, cooldownHours, hotelCooldownHours, maxDealsPerHotel, hotelDealCount }
  * @returns {Object|null}
  */
 function checkDeal(plan, hotel, discountRate, stayDate, ctx) {
@@ -212,7 +239,14 @@ function checkDeal(plan, hotel, discountRate, stayDate, ctx) {
 
   if (!isBelowTarget && !isHighDiscount) return null;
 
-  // クールダウンチェック
+  // ホテル単位クールダウンチェック（前回実行で通知済み→今回は全日付スキップ）
+  var hotelLastNotified = ctx.hotelNotifyCache[plan.hotelNo];
+  if (hotelLastNotified) {
+    var hotelElapsed = (ctx.now.getTime() - hotelLastNotified.getTime()) / (1000 * 60 * 60);
+    if (hotelElapsed < ctx.hotelCooldownHours) return null;
+  }
+
+  // 日付単位クールダウンチェック（既存）
   var cacheKey = plan.hotelNo + '|' + formatDate(stayDate);
   var lastNotified = ctx.notifyCache[cacheKey];
   if (lastNotified) {
@@ -220,8 +254,13 @@ function checkDeal(plan, hotel, discountRate, stayDate, ctx) {
     if (elapsedHours < ctx.cooldownHours) return null;
   }
 
+  // 今回実行内のホテル別上限チェック
+  var currentCount = ctx.hotelDealCount[plan.hotelNo] || 0;
+  if (currentCount >= ctx.maxDealsPerHotel) return null;
+
   // キャッシュを更新（同一実行内の重複通知防止）
   ctx.notifyCache[cacheKey] = ctx.now;
+  ctx.hotelDealCount[plan.hotelNo] = currentCount + 1;
 
   return {
     hotelName: plan.hotelName,

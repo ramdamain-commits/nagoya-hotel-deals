@@ -56,4 +56,6 @@
 | NOTIFY_EMAIL | 通知先メールアドレス |
 | REQUEST_DELAY_MS | API リクエスト間のディレイ（ミリ秒、デフォルト: 1000） |
 | COOLDOWN_HOURS | 同一ホテル×宿泊日の通知クールダウン時間（デフォルト: 24） |
+| HOTEL_COOLDOWN_HOURS | 同一ホテルの全日付を対象としたクールダウン時間（デフォルト: 72） |
+| MAX_DEALS_PER_HOTEL | 1回の通知メールあたりのホテル別上限件数（デフォルト: 3） |
 | DISCOUNT_THRESHOLD_PCT | 通知する割安率の閾値（%、デフォルト: 10） |
