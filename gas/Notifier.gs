@@ -70,3 +70,18 @@ function toLocalDate(stayDate) {
   var parts = String(stayDate).split('-');
   return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
 }
+
+/**
+ * テスト用: ダミーデータで通知メールを送信する（メールフォーマット確認用）
+ * GASエディタから手動実行する
+ */
+function testSendNotification() {
+  var deals = [
+    { hotelName: 'ホテル・アンドルームス名古屋伏見', hotelNo: '172380', stayDate: '2026-04-19', planName: 'シンプルステイ（素泊り）', charge: 7500, targetPrice: 8100, discountRate: 21.1, reviewAverage: 4.2, reviewCount: 150, reserveUrl: 'https://example.com/1' },
+    { hotelName: 'ホテル・アンドルームス名古屋伏見', hotelNo: '172380', stayDate: '2026-04-26', planName: 'シンプルステイ（素泊り）', charge: 7800, targetPrice: 8100, discountRate: 17.9, reviewAverage: 4.2, reviewCount: 150, reserveUrl: 'https://example.com/2' },
+    { hotelName: 'FORZA ホテルフォルツァ名古屋栄', hotelNo: '181850', stayDate: '2026-04-19', planName: 'お得な素泊りプラン', charge: 6900, targetPrice: 7700, discountRate: 25.4, reviewAverage: 4.3, reviewCount: 200, reserveUrl: 'https://example.com/3' },
+    { hotelName: 'ベストウェスタンプラス名古屋栄', hotelNo: '189164', stayDate: '2026-04-20', planName: '朝食付きプラン', charge: 4800, targetPrice: 5400, discountRate: 23.8, reviewAverage: 4.0, reviewCount: 80, reserveUrl: 'https://example.com/4' },
+  ];
+  sendDealNotifications(deals);
+  Logger.log('テスト通知を送信しました');
+}
