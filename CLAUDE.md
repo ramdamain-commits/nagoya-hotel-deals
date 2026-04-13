@@ -17,6 +17,12 @@
 - 429 レスポンス時はログに記録してスキップする
 - GAS 6分制限: 28日×1秒=最低28秒。ホテル数増加時はチェックポイント方式を検討
 
+## ダッシュボード検証
+
+- Preview ツールは外部API（GAS WebApp）への fetch でタイムアウトする → Chrome MCP を使う
+- Chrome MCP のスクリーンショットはこのページで安定しない → JS実行（`javascript_tool`）でDOM状態・CSS値・chartInstance.data を直接検証する方が確実
+- ローカル検証時は `python3 -m http.server 8090 --directory pages` で起動し Chrome MCP でアクセス
+
 ## スプレッドシート構成
 
 - Hotels: お気に入りホテルのマスタ
