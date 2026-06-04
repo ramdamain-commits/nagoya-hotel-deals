@@ -4,6 +4,7 @@
 - 現行仕様の正本は `README.md` + `CHANGELOG.md`
 - 設計書: `../docs/superpowers/specs/2026-04-11-nagoya-hotel-deals-design.md`
 - GAS コードは clasp push でデプロイ。コミット後は `clasp push` もセットで実行する
+  - clasp はグローバル導入済み（v3.3.0, 2026-06-04 確認）。PATH から直接 `clasp push --force` が使える。新規シェルで未認識のときは新しいターミナルを開く。最終手段として `healthcare/node_modules/.bin/clasp.cmd` をフルパス呼び出しでも可（cwd の `.clasp.json` を見る）
 - 文字コードは UTF-8
 
 ## 楽天トラベル API
