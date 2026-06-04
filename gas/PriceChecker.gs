@@ -77,15 +77,17 @@ function _checkAllPricesImpl() {
   var notifyCache = notifyCaches.byDate;
   var hotelNotifyCache = notifyCaches.byHotel;
 
-  // 向こう N 週間分を日付ごとに取得
+  // 向こう N 週間分のうち土曜日（getDay()===6）だけを対象に取得
   var totalDays = weeksAhead * 7;
   for (var d = 0; d < totalDays; d++) {
     var checkin = new Date(now.getFullYear(), now.getMonth(), now.getDate() + d);
+    // 土曜泊（土曜チェックイン）のみ対象。それ以外はスキップ
+    if (checkin.getDay() !== 6) continue;
     var checkout = new Date(now.getFullYear(), now.getMonth(), now.getDate() + d + 1);
     var checkinStr = formatDate(checkin);
     var checkoutStr = formatDate(checkout);
 
-    Logger.log('取得中: ' + checkinStr + ' (' + (d + 1) + '/' + totalDays + ')');
+    Logger.log('取得中(土): ' + checkinStr + ' (' + (d + 1) + '/' + totalDays + ')');
 
     // API は最大15件同時指定。超える場合はバッチ分割
     var batchSize = 15;
