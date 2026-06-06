@@ -17,7 +17,7 @@
 
 ## セットアップ
 
-1. Google スプレッドシートを作成し、Hotels / PriceLog / NotifyLog / Config シートを用意する
+1. Google スプレッドシートを作成し、Hotels / PriceLog / Config シートを用意する（NotifyLog は旧通知機能の残置シート。新規作成は不要）
 2. [楽天ウェブサービス](https://webservice.rakuten.co.jp/) で applicationId を取得
 3. Config シートに API_KEY 等を設定
 4. `clasp push` で GAS コードをデプロイ

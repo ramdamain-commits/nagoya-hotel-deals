@@ -49,10 +49,5 @@
       {"fetchDate": "2026-04-10", "stayDate": "2026-04-20", "charge": 7800, "planName": "日曜プラン", "discountRate": 29.1, "reviewAverage": 3.8, "reserveUrl": "https://travel.rakuten.co.jp/"},
       {"fetchDate": "2026-04-11", "stayDate": "2026-04-18", "charge": 8200, "planName": "エコノミーダブル", "discountRate": 25.5, "reviewAverage": 3.8, "reserveUrl": "https://travel.rakuten.co.jp/"}
     ]
-  },
-  "notify_history": [
-    {"hotelNo": "100001", "hotelName": "ホテルA 名古屋栄", "stayDate": "2026-04-20", "notifiedAt": "2026-04-11 21:05"},
-    {"hotelNo": "100003", "hotelName": "ホテルC 金山", "stayDate": "2026-04-18", "notifiedAt": "2026-04-11 21:05"},
-    {"hotelNo": "100002", "hotelName": "ホテルB 名古屋駅前", "stayDate": "2026-04-18", "notifiedAt": "2026-04-10 21:03"}
-  ]
+  }
 }

@@ -102,6 +102,7 @@ function renderSummary(data) {
     for (var j = 0; j < entries.length; j++) {
       var e = entries[j];
       if (!isSaturday(e.stayDate)) continue;
+      if (!e.charge) continue;
       if (cheapestCharge === null || e.charge < cheapestCharge) {
         cheapestCharge = e.charge;
         cheapestName = h.hotelName;
@@ -122,8 +123,7 @@ function renderSummary(data) {
 
   // 次の土曜日を計算
   var today = new Date();
-  var daysUntilSat = (6 - today.getDay() + 7) % 7;
-  if (daysUntilSat === 0) daysUntilSat = 7; // 今日が土曜なら来週
+  var daysUntilSat = (6 - today.getDay() + 7) % 7; // 今日が土曜なら 0（当日の土曜を表示）
   var nextSat = new Date(today.getFullYear(), today.getMonth(), today.getDate() + daysUntilSat);
   var nextSatStr = formatDateLocal(nextSat);
 
@@ -137,6 +137,7 @@ function renderSummary(data) {
     for (var sj = 0; sj < sEntries.length; sj++) {
       var se = sEntries[sj];
       if (se.stayDate !== nextSatStr) continue;
+      if (!se.charge) continue;
       if (satCheapestCharge === null || se.charge < satCheapestCharge) {
         satCheapestCharge = se.charge;
         satCheapestName = sh.hotelName;
@@ -493,6 +494,7 @@ function renderChart(hotels, priceHistory) {
 
     // 最新fetchDate を特定
     var latestFetch = allFetchDates[0];
+    if (!latestFetch) { if (chartInstance) { chartInstance.destroy(); chartInstance = null; } return; }
 
     for (var ti = 0; ti < targetH.length; ti++) {
       var hEntries = priceHistory[targetH[ti].hotelNo] || [];
@@ -609,6 +611,7 @@ function renderHotelCards(hotels, priceHistory) {
     for (var i = 0; i < hEntries.length; i++) {
       var e = hEntries[i];
       if (!isSaturday(e.stayDate)) continue;
+      if (!e.charge) continue;
       if (allLowest === null || e.charge < allLowest) {
         allLowest = e.charge;
         allLowestDate = e.stayDate;

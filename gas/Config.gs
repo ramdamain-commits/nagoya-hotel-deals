@@ -1,7 +1,6 @@
 // ===== シート名 =====
 const SHEET_HOTELS = 'Hotels';
 const SHEET_PRICE_LOG = 'PriceLog';
-const SHEET_NOTIFY_LOG = 'NotifyLog';
 const SHEET_CONFIG = 'Config';
 
 // ===== Hotels シートのカラム順序（1始まり） =====
@@ -25,13 +24,6 @@ const COL_P = Object.freeze({
   REVIEW_AVERAGE: 7,
   DISCOUNT_RATE: 8,
   RESERVE_URL: 9,
-});
-
-// ===== NotifyLog シートのカラム順序（1始まり） =====
-const COL_N = Object.freeze({
-  HOTEL_NO: 1,
-  STAY_DATE: 2,
-  NOTIFIED_AT: 3,
 });
 
 // ===== 定数 =====

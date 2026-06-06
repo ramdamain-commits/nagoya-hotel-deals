@@ -25,8 +25,9 @@ function cleanupNonSaturdayPriceLog() {
 
   var satRows = [];
   for (var i = 0; i < data.length; i++) {
-    var stayDate = new Date(data[i][COL_P.STAY_DATE - 1]);
-    if (stayDate.getDay() === 6) { // 0=日 ... 6=土
+    // スクリプトTZ非依存で土曜判定（'u': 1=月 ... 6=土 ... 7=日）
+    var dow = Utilities.formatDate(new Date(data[i][COL_P.STAY_DATE - 1]), 'Asia/Tokyo', 'u');
+    if (dow === '6') {
       satRows.push(data[i]);
     }
   }

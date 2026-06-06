@@ -25,14 +25,13 @@ function setupSheets() {
   var cf = ss.insertSheet('Config');
   cf.getRange('A1:B1').setValues([['key', 'value']]);
   cf.getRange('A1:B1').setFontWeight('bold');
-  cf.getRange('A2:B8').setValues([
-    ['API_KEY', '4dfa6e9e-fee0-4101-8d6a-f8b3f1b146de'],
+  // シークレットはコードに直書きせず、実行後に Config シートで手入力する
+  cf.getRange('A2:B6').setValues([
+    ['API_KEY', 'YOUR_RAKUTEN_APPLICATION_ID'],
     ['ADULT_NUM', 2],
     ['WEEKS_AHEAD', 4],
-    ['NOTIFY_EMAIL', 'ramdamain@gmail.com'],
-    ['REQUEST_DELAY_MS', 1000],
-    ['COOLDOWN_HOURS', 24],
-    ['DISCOUNT_THRESHOLD_PCT', 20]
+    ['NOTIFY_EMAIL', 'your-email@example.com'], // バッチ実行エラー時のアラート先
+    ['REQUEST_DELAY_MS', 1000]
   ]);
 
   Logger.log('Setup complete: Hotels, PriceLog, NotifyLog, Config');

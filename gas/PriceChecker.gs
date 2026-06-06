@@ -164,6 +164,10 @@ function updateRecentAvgPrices(hotelsSheet, priceLogSheet, hotelMap) {
     var fetchDate = new Date(logData[i][COL_P.FETCH_DATE - 1]);
     if (fetchDate < thirtyDaysAgo) continue;
 
+    // 土曜泊のみを平均に含める（過去の平日残存データを除外。'u': 6=土）
+    var dow = Utilities.formatDate(new Date(logData[i][COL_P.STAY_DATE - 1]), 'Asia/Tokyo', 'u');
+    if (dow !== '6') continue;
+
     var hotelNo = String(logData[i][COL_P.HOTEL_NO - 1]);
     var charge = logData[i][COL_P.CHARGE - 1];
     if (!charge) continue;
