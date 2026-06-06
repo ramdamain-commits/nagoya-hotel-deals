@@ -7,7 +7,8 @@ function onOpen() {
     .addItem('API 接続テスト', 'testApiConnection')
     .addSeparator()
     .addItem('target_price を再調整（85%基準）', 'recalcTargetPrices')
-    .addItem('通知ログをクリア', 'clearNotifyLog')
+    .addSeparator()
+    .addItem('PriceLog の非土曜行を削除（ワンショット）', 'cleanupNonSaturdayPriceLog')
     .addToUi();
 }
 
@@ -44,24 +45,4 @@ function recalcTargetPrices() {
     ui.alert('target_price更新完了', updated.length + '件更新:\n\n' + updated.join('\n'), ui.ButtonSet.OK);
   }
   Logger.log('target_price再調整: ' + updated.length + '件更新');
-}
-
-/**
- * NotifyLog シートの全データを削除する
- */
-function clearNotifyLog() {
-  var ui = SpreadsheetApp.getUi();
-  var confirm = ui.alert(
-    '通知ログクリア',
-    'NotifyLog の全データを削除しますか？\nクールダウンがリセットされ、次回取得時に通知が再送されます。',
-    ui.ButtonSet.YES_NO
-  );
-  if (confirm !== ui.Button.YES) return;
-
-  var sheet = getSheet(SHEET_NOTIFY_LOG);
-  var lastRow = sheet.getLastRow();
-  if (lastRow >= DATA_START_ROW) {
-    sheet.deleteRows(DATA_START_ROW, lastRow - HEADER_ROW);
-  }
-  ui.alert('NotifyLog をクリアしました');
 }

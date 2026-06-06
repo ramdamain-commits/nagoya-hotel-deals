@@ -492,6 +492,45 @@ details[open] summary {
 .notify-table tbody tr.odd { background: var(--bg-table-odd); }
 .notify-table tbody tr.odd:hover { background: var(--bg-hover); }
 
+/* ---- 土曜ベスト早見表 ---- */
+.section-note {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.75rem;
+}
+.sat-best-table {
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  width: 100%;
+  min-width: 360px;
+}
+.sat-best-table th, .sat-best-table td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.sat-best-table thead tr {
+  background: #1a237e;
+  color: #fff;
+}
+[data-theme="dark"] .sat-best-table thead tr { background: #0d1442; }
+.sat-best-table tbody tr:hover { background: var(--bg-hover); }
+.sat-best-table tbody tr.best-row {
+  background: var(--accent-light);
+  font-weight: 600;
+}
+.sat-best-table td:nth-child(3) { font-weight: 600; color: var(--accent); }
+.target-badge {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: #fff;
+  background: #2e7d32;
+  vertical-align: middle;
+}
+
 /* もっと見るボタン */
 .btn-more {
   display: inline-block;

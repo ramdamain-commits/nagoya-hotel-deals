@@ -8,17 +8,17 @@
   document.addEventListener('DOMContentLoaded', function() {
     var btn = document.getElementById('theme-toggle');
     if (!btn) return;
-    btn.textContent = theme === 'dark' ? '\u2600\uFE0F' : '\uD83C\uDF19';
+    btn.textContent = theme === 'dark' ? '☀️' : '🌙';
     btn.addEventListener('click', function() {
       var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
       if (isDark) {
         document.documentElement.removeAttribute('data-theme');
         localStorage.setItem('theme', 'light');
-        btn.textContent = '\uD83C\uDF19';
+        btn.textContent = '🌙';
       } else {
         document.documentElement.setAttribute('data-theme', 'dark');
         localStorage.setItem('theme', 'dark');
-        btn.textContent = '\u2600\uFE0F';
+        btn.textContent = '☀️';
       }
     });
   });
@@ -30,25 +30,9 @@ var API_URL = 'https://script.google.com/macros/s/AKfycbyg9ijFw9TFjW1P3USrpKMutd
 // ---- グローバルデータ ----
 var appData = null;
 
-// ---- お得アラートのカード色（ホテルごとに割当） ----
-var DEAL_CARD_COLORS = [
-  '#1a237e', '#c62828', '#2e7d32', '#ff6f00',
-  '#6a1b9a', '#00838f', '#4e342e', '#546e7a',
-  '#ad1457', '#0277bd', '#558b2f', '#e65100',
-];
-
 // ---- 初期化 ----
 async function init() {
-  document.getElementById('recommend-results').innerHTML = '';
   document.getElementById('updated-at').textContent = '最終更新: 読み込み中...';
-
-  // 日付ピッカーの初期値を明日に設定
-  var tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  document.getElementById('stay-date').value = formatDateLocal(tomorrow);
-
-  // 検索ボタン
-  document.getElementById('search-btn').addEventListener('click', onSearchClick);
 
   try {
     var url = API_URL || 'mock-data.json';
@@ -59,17 +43,15 @@ async function init() {
 
     renderUpdatedAt(data.updated_at);
     renderSummary(data);
-    renderDealCards(data.hotels, data.price_history);
-    renderHotelCards(data.hotels, data.price_history);
-    renderHeatmap(data.hotels, data.price_history);
+    renderSatBestTable(data.hotels, data.price_history);
     renderChart(data.hotels, data.price_history);
-    renderNotifyHistory(data.notify_history);
-    renderWeekdayHeatmap(data.hotels, data.price_history);
+    renderHeatmap(data.hotels, data.price_history);
+    renderHotelCards(data.hotels, data.price_history);
     setupNavHighlight();
   } catch (err) {
     var errMsg = '<p class="error-message">データの取得に失敗しました: ' + escapeHtml(err.message) + '</p>';
-    document.getElementById('deal-cards').innerHTML = errMsg;
     document.getElementById('hotel-cards').innerHTML = errMsg;
+    document.getElementById('sat-best-container').innerHTML = errMsg;
   }
 }
 
@@ -86,6 +68,11 @@ function getDayOfWeek(dateStr) {
   return ['日', '月', '火', '水', '木', '金', '土'][d.getDay()];
 }
 
+// stayDate 文字列が土曜かどうか（JST ローカル日付で判定）
+function isSaturday(dateStr) {
+  return new Date(dateStr + 'T00:00:00').getDay() === 6;
+}
+
 // ---- 最終更新 ----
 function renderUpdatedAt(updatedAt) {
   var el = document.getElementById('updated-at');
@@ -95,7 +82,7 @@ function renderUpdatedAt(updatedAt) {
   }
 }
 
-// ---- ダッシュボード要約バナー ----
+// ---- ダッシュボード要約バナー（土曜基準） ----
 function renderSummary(data) {
   var hotels = data.hotels || [];
   var priceHistory = data.price_history || {};
@@ -104,7 +91,7 @@ function renderSummary(data) {
   var enabledCount = hotels.filter(function(h) { return h.enabled; }).length;
   document.getElementById('summary-hotel-count').textContent = enabledCount;
 
-  // 最安価格・ホテル名・宿泊日（全エントリから最安を探す）
+  // 土曜最安（土曜エントリのみから最安を探す）
   var cheapestCharge = null;
   var cheapestName = '---';
   var cheapestDate = '';
@@ -114,6 +101,7 @@ function renderSummary(data) {
     var entries = priceHistory[h.hotelNo] || [];
     for (var j = 0; j < entries.length; j++) {
       var e = entries[j];
+      if (!isSaturday(e.stayDate)) continue;
       if (cheapestCharge === null || e.charge < cheapestCharge) {
         cheapestCharge = e.charge;
         cheapestName = h.hotelName;
@@ -122,8 +110,7 @@ function renderSummary(data) {
     }
   }
   if (cheapestCharge !== null) {
-    document.getElementById('summary-cheapest-price').textContent = '\u00a5' + cheapestCharge.toLocaleString();
-    // ホテル名 + 宿泊日（例: 「三交イン名古屋錦 4/19」）
+    document.getElementById('summary-cheapest-price').textContent = '¥' + cheapestCharge.toLocaleString();
     var cheapestMonth = parseInt(cheapestDate.slice(5, 7), 10);
     var cheapestDay = parseInt(cheapestDate.slice(8, 10), 10);
     document.getElementById('summary-cheapest-name').textContent =
@@ -159,194 +146,86 @@ function renderSummary(data) {
   var satMonth = nextSat.getMonth() + 1;
   var satDay = nextSat.getDate();
   if (satCheapestCharge !== null) {
-    document.getElementById('summary-sat-price').textContent = '\u00a5' + satCheapestCharge.toLocaleString();
+    document.getElementById('summary-sat-price').textContent = '¥' + satCheapestCharge.toLocaleString();
     document.getElementById('summary-sat-detail').textContent =
       satMonth + '/' + satDay + ' ' + satCheapestName;
   } else {
     document.getElementById('summary-sat-price').textContent = '---';
     document.getElementById('summary-sat-detail').textContent = satMonth + '/' + satDay + ' データなし';
   }
-
-  // お得アラート件数（targetPrice 以下のエントリ数）
-  var dealCount = 0;
-  for (var k = 0; k < hotels.length; k++) {
-    var hk = hotels[k];
-    var hEntries = priceHistory[hk.hotelNo] || [];
-    for (var l = 0; l < hEntries.length; l++) {
-      if (hk.targetPrice && hEntries[l].charge <= hk.targetPrice) dealCount++;
-    }
-  }
-  document.getElementById('summary-deal-count').textContent = dealCount;
 }
 
-// ---- デート日おすすめ検索 ----
-function onSearchClick() {
-  if (!appData) return;
-  var dateStr = document.getElementById('stay-date').value;
-  if (!dateStr) return;
-  renderRecommendResults(dateStr, appData.hotels, appData.price_history);
-}
+// ---- 土曜ベスト早見表 ----
+// 各土曜（stayDate）で最も安いホテルと価格を、安い土曜順に並べる
+function renderSatBestTable(hotels, priceHistory) {
+  var container = document.getElementById('sat-best-container');
 
-function renderRecommendResults(dateStr, hotels, priceHistory) {
-  var container = document.getElementById('recommend-results');
-  var results = [];
-
-  for (var i = 0; i < hotels.length; i++) {
-    var h = hotels[i];
+  // stayDate -> { charge, hotelName, targetPrice }
+  var bestByDate = {};
+  for (var hi = 0; hi < hotels.length; hi++) {
+    var h = hotels[hi];
     if (!h.enabled) continue;
-
     var entries = priceHistory[h.hotelNo] || [];
-    var best = null;
+
+    // このホテルの土曜 stayDate ごとの「最新 fetchDate の最安 charge」
+    var hotelBest = {};
     for (var j = 0; j < entries.length; j++) {
       var e = entries[j];
-      if (e.stayDate !== dateStr) continue;
-      if (!best || e.fetchDate > best.fetchDate || (e.fetchDate === best.fetchDate && e.charge < best.charge)) {
-        best = e;
+      if (!isSaturday(e.stayDate)) continue;
+      if (!e.charge) continue; // 0/null は除外
+      var cur = hotelBest[e.stayDate];
+      if (!cur || e.fetchDate > cur.fetchDate || (e.fetchDate === cur.fetchDate && e.charge < cur.charge)) {
+        hotelBest[e.stayDate] = { charge: e.charge, fetchDate: e.fetchDate };
       }
     }
-    if (!best) continue;
 
-    var discountRate = best.discountRate || 0;
-    var clampedDiscount = Math.max(0, discountRate);
-    var reviewAvg = best.reviewAverage || 0;
-    var score = Math.round(reviewAvg * clampedDiscount * 10) / 10;
+    // 全ホテル横断の各土曜最安を更新
+    for (var sd in hotelBest) {
+      var c = hotelBest[sd].charge;
+      var b = bestByDate[sd];
+      if (!b || c < b.charge) {
+        bestByDate[sd] = { charge: c, hotelName: h.hotelName, targetPrice: h.targetPrice };
+      }
+    }
+  }
 
-    results.push({
-      hotelNo: h.hotelNo,
-      hotelName: h.hotelName,
-      targetPrice: h.targetPrice,
-      charge: best.charge,
-      planName: best.planName,
-      discountRate: discountRate,
-      reviewAverage: reviewAvg,
-      score: score,
-      reserveUrl: best.reserveUrl,
+  var rows = [];
+  for (var d in bestByDate) {
+    rows.push({
+      stayDate: d,
+      charge: bestByDate[d].charge,
+      hotelName: bestByDate[d].hotelName,
+      targetPrice: bestByDate[d].targetPrice,
     });
   }
 
-  if (results.length === 0) {
-    container.innerHTML = '<p class="loading">この日は空室が見つかりませんでした。</p>';
+  if (rows.length === 0) {
+    container.innerHTML = '<p class="loading">土曜の価格データがありません。</p>';
     return;
   }
 
-  results.sort(function(a, b) { return b.score - a.score; });
+  // 最安値が安い土曜が上
+  rows.sort(function(a, b) { return a.charge - b.charge; });
 
-  var dayLabel = dateStr + ' (' + getDayOfWeek(dateStr) + ')';
-  var html = '<h3>' + escapeHtml(dayLabel) + ' のおすすめ</h3><div class="card-grid">';
-
-  for (var k = 0; k < results.length; k++) {
-    var r = results[k];
-    var badgeClass = r.score >= 80 ? 'badge-high' : (r.score >= 30 ? 'badge-mid' : 'badge-low');
-    var discountClass = r.discountRate >= 0 ? 'discount-positive' : 'discount-negative';
-    var discountLabel = (r.discountRate >= 0 ? '+' : '') + r.discountRate.toFixed(1) + '%';
-    var reserveLink = r.reserveUrl
-      ? '<a class="btn-reserve" href="' + escapeHtml(r.reserveUrl) + '" target="_blank" rel="noopener">予約する</a>'
-      : '';
-
-    html += '<div class="card">'
-      + '<span class="badge-score ' + badgeClass + '">スコア ' + r.score + '</span>'
-      + '<h3>' + escapeHtml(r.hotelName) + '</h3>'
-      + '<div class="price">\u00a5' + r.charge.toLocaleString() + '</div>'
-      + '<div class="plan-name">' + escapeHtml(r.planName) + '</div>'
-      + '<div class="meta">'
-      + '割安率: <span class="' + discountClass + '">' + discountLabel + '</span>'
-      + ' / 評点: ' + r.reviewAverage
-      + '</div>'
-      + reserveLink
-      + '</div>';
+  var html = '<div style="overflow-x:auto;"><table class="sat-best-table">'
+    + '<thead><tr><th>土曜</th><th>最安ホテル</th><th>最安値</th><th></th></tr></thead><tbody>';
+  for (var k = 0; k < rows.length; k++) {
+    var r = rows[k];
+    var m = parseInt(r.stayDate.slice(5, 7), 10);
+    var day = parseInt(r.stayDate.slice(8, 10), 10);
+    var dateLabel = m + '/' + day + ' (土)';
+    var onTarget = r.targetPrice && r.charge <= r.targetPrice;
+    var badge = onTarget ? '<span class="target-badge">目標達成</span>' : '';
+    var rowClass = k === 0 ? ' class="best-row"' : '';
+    html += '<tr' + rowClass + '>'
+      + '<td>' + escapeHtml(dateLabel) + '</td>'
+      + '<td>' + escapeHtml(r.hotelName) + '</td>'
+      + '<td>¥' + r.charge.toLocaleString() + '</td>'
+      + '<td>' + badge + '</td>'
+      + '</tr>';
   }
-  html += '</div>';
+  html += '</tbody></table></div>';
   container.innerHTML = html;
-}
-
-// ---- お得アラート ----
-// 同一ホテルは最大2件まで（最安2プランのみ）、上限6件
-function renderDealCards(hotels, priceHistory) {
-  var container = document.getElementById('deal-cards');
-  var noDealEl = document.getElementById('no-deals');
-
-  // ホテルごとの色マップを構築（ホテルNoの出現順に割当）
-  var hotelColorMap = {};
-  var colorIndex = 0;
-  for (var i = 0; i < hotels.length; i++) {
-    hotelColorMap[hotels[i].hotelNo] = DEAL_CARD_COLORS[colorIndex % DEAL_CARD_COLORS.length];
-    colorIndex++;
-  }
-
-  // targetPrice 以下のエントリを全収集
-  var allDeals = [];
-  for (var hi = 0; hi < hotels.length; hi++) {
-    var h = hotels[hi];
-    var entries = priceHistory[h.hotelNo] || [];
-    for (var j = 0; j < entries.length; j++) {
-      var e = entries[j];
-      if (h.targetPrice && e.charge <= h.targetPrice) {
-        allDeals.push({
-          hotelNo: h.hotelNo,
-          hotelName: h.hotelName,
-          stayDate: e.stayDate,
-          charge: e.charge,
-          targetPrice: h.targetPrice,
-          planName: e.planName,
-          reserveUrl: e.reserveUrl,
-        });
-      }
-    }
-  }
-
-  if (allDeals.length === 0) {
-    container.innerHTML = '';
-    noDealEl.hidden = false;
-    return;
-  }
-  noDealEl.hidden = true;
-
-  // 土曜日のエントリに10%ボーナスを付けてソート（表示価格は元の charge のまま）
-  allDeals.sort(function(a, b) {
-    var dayA = new Date(a.stayDate + 'T00:00:00').getDay();
-    var dayB = new Date(b.stayDate + 'T00:00:00').getDay();
-    var adjA = dayA === 6 ? a.charge * 0.9 : a.charge;
-    var adjB = dayB === 6 ? b.charge * 0.9 : b.charge;
-    return adjA - adjB;
-  });
-
-  // ホテルごとに最安2件まで絞り込み
-  var hotelCount = {};
-  var deals = [];
-  for (var k = 0; k < allDeals.length; k++) {
-    var deal = allDeals[k];
-    var cnt = hotelCount[deal.hotelNo] || 0;
-    if (cnt < 2) {
-      deals.push(deal);
-      hotelCount[deal.hotelNo] = cnt + 1;
-    }
-  }
-
-  // 全体で最大6件
-  deals = deals.slice(0, 6);
-
-  container.innerHTML = deals.map(function(d) {
-    var savings = d.targetPrice - d.charge;
-    var discountPct = Math.round((savings / d.targetPrice) * 100);
-    var isSaturday = new Date(d.stayDate + 'T00:00:00').getDay() === 6;
-    var dayLabel = d.stayDate + ' (' + getDayOfWeek(d.stayDate) + ')';
-    // 土曜日には「土」バッジを付ける
-    var satBadge = isSaturday ? '<span class="day-badge">土</span>' : '';
-    var reserveLink = d.reserveUrl
-      ? '<a class="btn-reserve" href="' + escapeHtml(d.reserveUrl) + '" target="_blank" rel="noopener">予約する</a>'
-      : '';
-    var borderColor = hotelColorMap[d.hotelNo] || '#1a237e';
-
-    return '<div class="card" style="border-left: 4px solid ' + borderColor + ';">'
-      + '<div class="discount-badge">-' + discountPct + '%</div>'
-      + '<h3>' + escapeHtml(d.hotelName) + '</h3>'
-      + '<div class="meta">' + escapeHtml(dayLabel) + satBadge + '</div>'
-      + '<div class="price">\u00a5' + d.charge.toLocaleString() + '</div>'
-      + '<div class="plan-name">' + escapeHtml(d.planName) + '</div>'
-      + '<div class="meta">目標\u00a5' + d.targetPrice.toLocaleString() + ' \u2192 \u00a5' + savings.toLocaleString() + ' お得</div>'
-      + reserveLink
-      + '</div>';
-  }).join('');
 }
 
 // ---- ヒートマップ（5色グラデーション） ----
@@ -365,6 +244,7 @@ function renderHeatmap(hotels, priceHistory) {
   for (var hn in priceHistory) {
     var entries = priceHistory[hn];
     for (var i = 0; i < entries.length; i++) {
+      if (!isSaturday(entries[i].stayDate)) continue;
       allDates[entries[i].stayDate] = true;
     }
   }
@@ -378,6 +258,7 @@ function renderHeatmap(hotels, priceHistory) {
     var hEntries = priceHistory[hotelNo] || [];
     for (var j = 0; j < hEntries.length; j++) {
       var e = hEntries[j];
+      if (!isSaturday(e.stayDate)) continue;
       var cur = matrix[hotelNo][e.stayDate];
       if (!cur || e.fetchDate > cur.fetchDate || (e.fetchDate === cur.fetchDate && e.charge < cur.charge)) {
         matrix[hotelNo][e.stayDate] = { charge: e.charge, fetchDate: e.fetchDate };
@@ -410,7 +291,7 @@ function renderHeatmap(hotels, priceHistory) {
       } else {
         var ratio = (cell.charge - minCharge) / range;
         var heatClass = getHeatClass(ratio);
-        html += '<td class="' + heatClass + '">\u00a5' + (cell.charge / 1000).toFixed(1) + 'k</td>';
+        html += '<td class="' + heatClass + '">¥' + (cell.charge / 1000).toFixed(1) + 'k</td>';
       }
     }
     html += '</tr>';
@@ -421,7 +302,7 @@ function renderHeatmap(hotels, priceHistory) {
   // summaryのホテル数×日数を動的更新
   var summaryEl = document.querySelector('#heatmap-details summary');
   if (summaryEl) {
-    summaryEl.textContent = '日付 × ホテル 価格ヒートマップを表示（' + hotels.length + 'ホテル × ' + dates.length + '日）';
+    summaryEl.textContent = '土曜 × ホテル 価格ヒートマップを表示（' + hotels.length + 'ホテル × ' + dates.length + '土曜）';
   }
 }
 
@@ -462,10 +343,11 @@ function renderChart(hotels, priceHistory) {
       return h.hotelNo === selectedHotelNo;
     });
 
-    // 宿泊日の全集合を収集（直近7fetchDate分）
+    // 宿泊日の全集合を収集（直近7fetchDate分・土曜のみ）
     for (var ti = 0; ti < targetHotels.length; ti++) {
       var hEntries = priceHistory[targetHotels[ti].hotelNo] || [];
       for (var j = 0; j < hEntries.length; j++) {
+        if (!isSaturday(hEntries[j].stayDate)) continue;
         if (allFetchDates.indexOf(hEntries[j].fetchDate) >= 0) {
           allDates[hEntries[j].stayDate] = true;
         }
@@ -554,14 +436,14 @@ function renderChart(hotels, priceHistory) {
         aspectRatio: isMobile ? 1 : 2,
         scales: {
           x: {
-            title: { display: !isMobile, text: '宿泊日' },
+            title: { display: !isMobile, text: '宿泊日（土曜）' },
             ticks: { maxRotation: 45, font: { size: isMobile ? 10 : 12 } },
           },
           y: {
             title: { display: !isMobile, text: '料金（円）' },
             ticks: {
               font: { size: isMobile ? 10 : 12 },
-              callback: function(v) { return '\u00a5' + v.toLocaleString(); },
+              callback: function(v) { return '¥' + v.toLocaleString(); },
             },
             beginAtZero: false,
           },
@@ -615,6 +497,7 @@ function renderChart(hotels, priceHistory) {
     for (var ti = 0; ti < targetH.length; ti++) {
       var hEntries = priceHistory[targetH[ti].hotelNo] || [];
       for (var j = 0; j < hEntries.length; j++) {
+        if (!isSaturday(hEntries[j].stayDate)) continue;
         if (hEntries[j].fetchDate === latestFetch) {
           allDates[hEntries[j].stayDate] = true;
         }
@@ -656,8 +539,8 @@ function renderChart(hotels, priceHistory) {
         maintainAspectRatio: !isMobile,
         aspectRatio: isMobile ? 1 : 2,
         scales: {
-          x: { title: { display: !isMobile, text: '宿泊日' }, ticks: { maxRotation: 45, font: { size: isMobile ? 10 : 12 } } },
-          y: { title: { display: !isMobile, text: '料金（円）' }, ticks: { font: { size: isMobile ? 10 : 12 }, callback: function(v) { return '\u00a5' + v.toLocaleString(); } }, beginAtZero: false },
+          x: { title: { display: !isMobile, text: '宿泊日（土曜）' }, ticks: { maxRotation: 45, font: { size: isMobile ? 10 : 12 } } },
+          y: { title: { display: !isMobile, text: '料金（円）' }, ticks: { font: { size: isMobile ? 10 : 12 }, callback: function(v) { return '¥' + v.toLocaleString(); } }, beginAtZero: false },
         },
         plugins: { legend: { position: 'bottom', labels: { font: { size: isMobile ? 10 : 12 }, boxWidth: isMobile ? 12 : 40 } } },
       },
@@ -711,166 +594,27 @@ function renderChart(hotels, priceHistory) {
   });
 }
 
-// ---- 通知履歴（直近20件 + もっと見るボタン）----
-var NOTIFY_INITIAL_LIMIT = 20;
-
-function renderNotifyHistory(notifyHistory) {
-  var container = document.getElementById('notify-history-container');
-  var moreContainer = document.getElementById('notify-more-container');
-
-  // データがない場合またはフィールド未定義の場合
-  if (!notifyHistory || notifyHistory.length === 0) {
-    container.innerHTML = '<p class="loading">通知履歴はありません。</p>';
-    moreContainer.innerHTML = '';
-    return;
-  }
-
-  // テーブルHTML生成（件数指定）
-  function buildTable(items) {
-    var html = '<div style="overflow-x:auto;">'
-      + '<table class="notify-table">'
-      + '<thead><tr><th>通知日時</th><th>ホテル名</th><th>宿泊日</th></tr></thead>'
-      + '<tbody>';
-
-    for (var i = 0; i < items.length; i++) {
-      var n = items[i];
-      // notifiedAt は ISO文字列想定
-      var notifiedLabel = n.notifiedAt ? new Date(n.notifiedAt).toLocaleString('ja-JP') : '-';
-      var stayLabel = n.stayDate ? n.stayDate + ' (' + getDayOfWeek(n.stayDate) + ')' : '-';
-      var rowClass = i % 2 === 0 ? '' : ' class="odd"';
-      html += '<tr' + rowClass + '>'
-        + '<td>' + escapeHtml(notifiedLabel) + '</td>'
-        + '<td>' + escapeHtml(n.hotelName || '') + '</td>'
-        + '<td>' + escapeHtml(stayLabel) + '</td>'
-        + '</tr>';
-    }
-
-    html += '</tbody></table></div>';
-    return html;
-  }
-
-  // 直近20件だけ表示
-  var initialItems = notifyHistory.slice(0, NOTIFY_INITIAL_LIMIT);
-  container.innerHTML = buildTable(initialItems);
-  moreContainer.innerHTML = '';
-
-  var remaining = notifyHistory.length - NOTIFY_INITIAL_LIMIT;
-  if (remaining > 0) {
-    var btn = document.createElement('button');
-    btn.className = 'btn-more';
-    btn.textContent = 'もっと見る（残り ' + remaining + ' 件）';
-    btn.addEventListener('click', function() {
-      // 全件表示に切り替え
-      container.innerHTML = buildTable(notifyHistory);
-      moreContainer.innerHTML = '';
-    });
-    moreContainer.appendChild(btn);
-  }
-}
-
-// ---- 曜日別 平均価格ヒートマップ（5色グラデーション）----
-function renderWeekdayHeatmap(hotels, priceHistory) {
-  var container = document.getElementById('weekday-heatmap-container');
-  var weekdays = ['月', '火', '水', '木', '金', '土', '日'];
-  // getDayOfWeek は 日月火水木金土 の順。曜日インデックスは getDay() と対応
-  // 列は月〜日の順（月=1, ..., 日=0）に並べる
-  var dayOrder = [1, 2, 3, 4, 5, 6, 0]; // Date.getDay() 値の順
-
-  // 直近14日の宿泊日のみを対象にする
-  var now = new Date();
-  var cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 14);
-  var cutoffStr = formatDateLocal(cutoff);
-
-  // ホテル×曜日ごとの合計・件数を集計
-  // matrix[hotelNo][dayIndex] = {sum, count}
-  var matrix = {};
-  for (var hi = 0; hi < hotels.length; hi++) {
-    var hotelNo = hotels[hi].hotelNo;
-    matrix[hotelNo] = {};
-    for (var d = 0; d < 7; d++) { matrix[hotelNo][d] = { sum: 0, count: 0 }; }
-
-    var hEntries = priceHistory[hotelNo] || [];
-    // 宿泊日ごとに最新fetchDateの最安値を取得してから集計
-    var bestByDate = {};
-    for (var j = 0; j < hEntries.length; j++) {
-      var e = hEntries[j];
-      if (e.stayDate < cutoffStr) continue;
-      var cur = bestByDate[e.stayDate];
-      if (!cur || e.fetchDate > cur.fetchDate || (e.fetchDate === cur.fetchDate && e.charge < cur.charge)) {
-        bestByDate[e.stayDate] = e;
-      }
-    }
-    for (var stayDate in bestByDate) {
-      var dayOfWeek = new Date(stayDate + 'T00:00:00').getDay(); // 0=日, 1=月, ...
-      matrix[hotelNo][dayOfWeek].sum += bestByDate[stayDate].charge;
-      matrix[hotelNo][dayOfWeek].count += 1;
-    }
-  }
-
-  // 全セルの平均価格を集めてmin/maxを算出
-  var allAvgs = [];
-  for (var hn in matrix) {
-    for (var d2 = 0; d2 < 7; d2++) {
-      var cell = matrix[hn][d2];
-      if (cell.count > 0) allAvgs.push(cell.sum / cell.count);
-    }
-  }
-  if (allAvgs.length === 0) {
-    container.innerHTML = '<p class="loading">データなし</p>';
-    return;
-  }
-  var minAvg = Math.min.apply(null, allAvgs);
-  var maxAvg = Math.max.apply(null, allAvgs);
-  var range = maxAvg - minAvg || 1;
-
-  // テーブル描画
-  var html = '<table class="heatmap-table"><thead><tr><th></th>';
-  for (var wi = 0; wi < weekdays.length; wi++) {
-    html += '<th>' + weekdays[wi] + '</th>';
-  }
-  html += '</tr></thead><tbody>';
-
-  for (var hi2 = 0; hi2 < hotels.length; hi2++) {
-    var ht = hotels[hi2];
-    html += '<tr><th>' + escapeHtml(ht.hotelName) + '</th>';
-    for (var wi2 = 0; wi2 < dayOrder.length; wi2++) {
-      var dow = dayOrder[wi2];
-      var cellData = matrix[ht.hotelNo][dow];
-      if (!cellData || cellData.count === 0) {
-        html += '<td class="heat-nodata">-</td>';
-      } else {
-        var avg = cellData.sum / cellData.count;
-        var ratio = (avg - minAvg) / range;
-        var heatClass = getHeatClass(ratio);
-        html += '<td class="' + heatClass + '">\u00a5' + (avg / 1000).toFixed(1) + 'k</td>';
-      }
-    }
-    html += '</tr>';
-  }
-  html += '</tbody></table>';
-  container.innerHTML = '<div style="overflow-x:auto;">' + html + '</div>';
-}
-
 // ---- ホテル一覧カード ----
-// priceHistory を第2引数として受け取り、最安値・最安日・目標との差を表示
+// priceHistory を第2引数として受け取り、土曜の最安値・最安日・目標との差を表示
 function renderHotelCards(hotels, priceHistory) {
   var container = document.getElementById('hotel-cards');
   container.innerHTML = hotels.filter(function(h) { return h.enabled; }).map(function(h) {
-    var targetText = h.targetPrice ? '\u00a5' + h.targetPrice.toLocaleString() : '---';
-    var avgText = h.recentAvgPrice ? '\u00a5' + h.recentAvgPrice.toLocaleString() : '未蓄積';
+    var targetText = h.targetPrice ? '¥' + h.targetPrice.toLocaleString() : '---';
+    var avgText = h.recentAvgPrice ? '¥' + h.recentAvgPrice.toLocaleString() : '未蓄積';
 
-    // 全期間の最安値と最安の宿泊日を計算
+    // 土曜の最安値と最安の宿泊日を計算
     var allLowest = null;
     var allLowestDate = '';
     var hEntries = (priceHistory && priceHistory[h.hotelNo]) || [];
     for (var i = 0; i < hEntries.length; i++) {
       var e = hEntries[i];
+      if (!isSaturday(e.stayDate)) continue;
       if (allLowest === null || e.charge < allLowest) {
         allLowest = e.charge;
         allLowestDate = e.stayDate;
       }
     }
-    var lowestText = allLowest !== null ? '\u00a5' + allLowest.toLocaleString() : '---';
+    var lowestText = allLowest !== null ? '¥' + allLowest.toLocaleString() : '---';
     var lowestDateText = '';
     if (allLowestDate) {
       var lm = parseInt(allLowestDate.slice(5, 7), 10);
@@ -895,7 +639,7 @@ function renderHotelCards(hotels, priceHistory) {
     return '<div class="' + cardClass + '">'
       + '<h3>' + escapeHtml(h.hotelName) + '</h3>'
       + '<div class="meta">目標: ' + targetText + ' / 30日平均: ' + avgText + '</div>'
-      + '<div class="meta">最安: ' + lowestText + lowestDateText + '</div>'
+      + '<div class="meta">土曜最安: ' + lowestText + lowestDateText + '</div>'
       + diffText
       + '</div>';
   }).join('');
