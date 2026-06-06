@@ -20,6 +20,8 @@
 
 ## ダッシュボード検証
 
+- **ローカル実描画検証は `pages/app.js` の `API_URL` を一時的に `''` にして mock-data.json フォールバックで行う**（`var url = API_URL || 'mock-data.json'`）。GAS WebApp 直叩きは preview がタイムアウトするため。検証後は必ず実 URL に戻す（コミット前に `grep "var API_URL"` で空でないこと確認）。mock-data.json は平日・土曜混在なので土曜フィルタの検証に使える
+- **`preview_screenshot` はこのダッシュボードで30秒タイムアウトする**（既知）。`preview_eval` で DOM（セクションid・テーブル行・getComputedStyle）を直接検証する方が確実
 - Preview ツールは外部API（GAS WebApp）への fetch でタイムアウトする → Chrome MCP を使う
 - Chrome MCP のスクリーンショットはこのページで安定しない → JS実行（`javascript_tool`）でDOM状態・CSS値・chartInstance.data を直接検証する方が確実
 - ローカル検証時は `python3 -m http.server 8090 --directory pages` で起動し Chrome MCP でアクセス
